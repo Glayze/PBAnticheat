@@ -1,0 +1,1017 @@
+# Pigblock AntiCheat from the developers of Pigblock - Glayze Revamp
+# Detections: Killaura, Fly, Speed, Reach, SelfHurt, NoFall and AirWalk, WaterWalk, HighJump, FastBow, XRay, AntiSpam (More Coming Soon)
+# Main Developer: _LkZ
+# Other Developers: MikkelOnTop
+# Join our discord for updates when we make a new version, or to report bugs and add suggestions! https://discord.gg/Ff76XSj
+# find our terms of use and more updates at: https://Pigblock-anticheat.carrd.co
+# the guy who like fixed all the lag and added 3 new epic detections: Synth)
+
+options:
+	version: 2.0 (because 2.0 is indeed a good number)
+	NoPermission: &c&lPigblock &8>> &4Invalid Permission!
+	chat_cooldown_seconds: 3
+	eula: false
+	kick_10_alerts: true
+	KickMessage: &C&lPigblock &8>> &cCheating
+	FileName: Enter the anticheat file name here!
+
+command /Pigblock [<text>] [<offline player>]:
+	permission: Pigblock.command.command
+	permission message: {@NoPermission}
+	trigger:
+		if arg 1 is not set:
+			send "&c&lPigblock &8>> &c/Pigblock help"
+        if arg 1 is "discord":
+            send "&cJoin our discord by clicking &n<ForPigblock>here<reset>"
+		if arg 1 is "help":
+			send "&c&lPigblock AntiCheat. &fMade by Glayzor"
+			send "&c/Pigblock help"
+			send "&c/Pigblock freeze <player>"
+			send "&c/Pigblock alerts <player>"
+			send "&c/Pigblock addons"
+			send "&c/addbannedword <word>"
+			send "&c/bannedwords"
+			send "&c/clearbannedwords"
+			send "&c/report <player> <reason>"
+			send "&c/reports <player>"
+			send "&c/clearreports <player>"
+			send "&c/Pigblock gui"
+			send "&c/Pigblock xray"
+		if arg 1 is "addons":
+			{Pigblockpi::addons::*} is set:
+				send "&c&lPigblock AntiCheat Loaded Addons."
+				send "&c&l--------------------------------"
+				loop {Pigblockpi::addons::*}:
+					send "&c%loop-value%"
+				send "&c&l--------------------------------"
+				stop
+			send "&4&lERROR &cNo addons loaded"
+		if arg 1 is "freeze":
+			if arg 2 is set:
+				if player has permission "Pigblock.command.freeze":
+					if {freezed::%arg 2%} is false:
+						set {freezed.%arg 2%} to true
+						send "&c&lPigblock &8>> &c%arg 2%&f is now frozen!"
+					else:
+						set {freezed::%arg 2%} to false
+						send "&c&lPigblock &8>> &c%arg 2% is no longer frozen!"
+				else:
+					send "{@NoPermission}"
+		if arg 1 is "alerts" or "logs":
+			if arg 2 is set:
+				if player has permission "Pigblock.command.logs":
+					send "&cAuto Clicker Logs: %{autoclickerlogs::%arg 2%}%"
+					send "&cFlight / AirWalk / NoFall Logs: %{flightlogs::%arg 2%}%"
+					send "&cKillaura logs: %{killauralogs::%arg 2%}%"
+					send "&cSpeed / Flight Logs: %{speedalerts::%arg 2%}%"
+					send "&cReach Logs: %{reachalerts::%arg 2%}%"
+					send "&cAnti Knockback Logs: %{antikbalerts::%arg 2%}%"
+					send "&cFast Bow Logs: %{fastbowalerts::%arg 2%}%"
+					send "&cWaterwalk Logs: %{waterwalk::%arg 2%}%"
+					send "&cHigh Jump Logs: %{highjumplogs::%arg 2%}%"
+					send "&Spider Logs: %{spiderlogs::%arg 2%}%"
+				else:
+					send "{@NoPermission}"
+			else:
+				send "&c&lPigblock &8>> &cPlease specify a player!"
+		if arg 1 is "gui":
+			if player has permission "Pigblock.gui":
+				gui(player)
+		if arg 1 is "xray":
+			if player has permission "Pigblock.xray":
+				xray(player)
+		if arg 1 is "reload":
+			if player has permission "Pigblock.reload":
+				set {FileName} to "{@FileName}"
+				if {FileName} != "Enter the anticheat file name here!":
+					execute console command "sk reload {@FileName}"
+					send "&4&lSUCCESS &8| &cAnticheat has been reloaded"
+				else:
+					send "&4&lERROR &8| &cPlease enter your skript file name in the options section of the anticheat!"
+
+command /report [<offline player>] [<text>]:
+	permission: Pigblock.report.use
+	permission message: {@NoPermission}
+	trigger:
+		if arg 1 is set:
+			if arg 2 is set:
+				if arg 1 does not have permission "Pigblock.report.bypass":
+					"%arg 1%" != "%player%":
+						add 1 to {reports::%arg 1%}
+						set {report::%arg 1%::%{reports::%arg 1%}%} to arg 2
+						add {report::%arg 1%::%{reports::%arg 1%}%} to {reports::%arg 1%::*}
+						send "&c&lPigblock &8>> &fYou have reported &c%arg 1%&f for the reason &c%arg 2%."
+						send "&c&lPigblock &8>> &c%player% has reported &c%arg 1% for the reason &c%arg 2%." to all players where [player input has permission "Pigblock.logs"]
+					else:
+						send "&c&lPigblock &8>> &fYou cant report yourself, silly!"
+				else:
+					send "&c&lPigblock &8>> &fYou cannot report that player!"
+			else:
+				send "&c&lPigblock &8>> &f/report <player> <reason>"
+		else:
+			send "&c&lPigblock &8>> &f/report <player> <reason>"
+
+command /reports [<offline player>]:
+	permission: Pigblock.report.see
+	permission message: {@NoPermission}
+	trigger:
+		if arg 1 is set:
+			set {_e} to 1
+			send "&a---------------------"
+			loop 20 times:
+				if {reports::%arg 1%::%{_e}%} is set:
+					send "%{reports::%arg 1%::%{_e}%}%"
+					add 1 to {_e}
+			send "&a---------------------"
+
+command /clearreports [<offline player>]:
+	permission: Pigblock.report.clear
+	permission message: {@NoPermission}
+	trigger:
+		delete {reports::%arg 1%::*}
+		delete {reports::%arg 1%}
+		delete {report::%arg 1%::*}
+ 
+
+every 30 seconds:
+	delete {alerts::*}
+
+on left click:
+	if {@eula} is true:
+		player does not have permission "Pigblock.bypass.autoclicker":
+			if {autoclicker} is true:
+				add 1 to {killaura::%player%}
+				if {killaura::%player%} >= 20:
+					set {_ping} to player's ping
+					alert(player, "Auto Clicker")
+					add 1 to {autoclickerlogs::%player%}
+					execute console command "auratest %player%"
+					add 1 to {alerts::%player%}
+					if {alerts::%player%} >= 10:
+						if {kick_10_alerts} is true:
+							Pigblockpi_kickPlayer(player)
+
+on left click:
+	if {@eula} is true:
+		if {killaura} is true:
+			add 1 to {clickauratest::%player%}
+			player does not have permission "Pigblock.bypass.killaura"
+			if {clickauratest::%player%} >= 13:
+				execute console command "auratest %player%"
+
+every 1 second:
+	delete {clickauratest::*}
+	delete {killaura::*}
+
+
+on damage:
+	attacker is a player:
+		if attacker's targeted entity is not set:
+			if {@eula} is true:
+				if attacker does not have permission "Pigblock.bypass.invalidtarget": 
+					if {killaura} is true:
+						set {_ping} to attacker's ping
+						alert(attacker, "Invalid Target")
+						add 1 to {killauralogs::%attacker%}
+						add 1 to {alerts::%attacker%}
+						if {alerts::%attacker%} >= 10:
+							if {kick_10_alerts} is true:
+								Pigblockpi_kickPlayer(attacker)
+
+
+on damage:
+	add 1 to {hits::%attacker%}
+
+on left click:
+	add 1 to {leftclicks::%player%}
+
+on death:
+	if {@eula} is true:
+		if player does not have permission "Pigblock.bypass.killaura":
+			if {killaura} is true:
+				if {hits::%attacker%} = {leftclicks::%attacker%}:
+					execute console command "auratest %attacker%"
+
+command /auratest [<player>]:
+	permission: Pigblock.command.auratest
+	permission message: &c&lPigblock >> No Permissions
+	trigger:
+		if {killaura} is true:
+			set {loc} to location behind arg 1
+			set {attacker} to arg 1
+			set {auratest.%arg 1%} to true
+			spawn a zombie at {loc}
+			set {bot} to last spawned entity
+			wait 5 ticks
+			delete last spawned entity
+
+on damage:
+	if attacker is {attacker}:
+		if {killaura} is true:
+			if victim is {bot}:
+				delete {bot}
+				alert(attacker, "Killaura")
+				add 1 to {killauralogs::%attacker%}
+				add 1 to {alerts::%attacker%}
+				if {alerts::%attacker%} >= 10:
+					if {kick_10_alerts} is true:
+						Pigblockpi_kickPlayer(attacker)
+	else:
+		if victim is {bot}:
+			cancel event
+
+	
+	
+	
+
+on any move:
+	{@eula} is true
+	player's gamemode is not creative
+	player does not have permission "Pigblock.bypass.fly"
+	difference between {log.%player%} and now is more than 0.3 seconds
+	player is on ground
+	block below player is air
+	block north below player is air
+	block south below player is air
+	block west below player is air
+	block east below player is air
+	block north east below player is air
+	block south east below player is air
+	block north west below player is air
+	block south west below player is air
+	if {fly} is true:
+		add 1 to {fly::%player%}
+		if {fly::%player%} >= 3:
+			alert(player, "Groundspoof")
+			teleport player to {rubberband.%player%}
+			add 1 to {alerts::%player%}
+			add 1 to {flightlogs::%player%}
+			if {alerts::%player%} >= 10:
+				if {kick_10_alerts} is true:
+					Pigblockpi_kickPlayer(player)
+
+
+
+on any move:
+	player does not have permission "Pigblock.bypass.fly"
+	player's gamemode is survival or adventure
+	player's flight mode is false
+	set {_y1} to y pos of player
+	wait 2 ticks
+	set {_y2} to y pos of player
+	difference between {_y1} and {_y2} is less than 0.4
+	difference between {log.%player%} and now is more than 0.5 seconds
+	difference between {reload.%player%} and now is more than 5 seconds
+	add 1 to {fly::%player%}
+	if {fly} is true:
+		if {fly::%player%} >= 3:
+			alert(player, "AirWalk")
+			teleport player to {rubberband.%player%}
+			add 1 to {alerts::%player%}
+			add 1 to {flightlogs::%player%}
+			if {alerts::%player%} >= 10:
+				if {kick_10_alerts} is true:
+					Pigblockpi_kickPlayer(player)
+	
+on any move:
+	player does not have permission "Pigblock.bypass.fly"
+	player's gamemode is survival or adventure
+	player's flight mode is false
+	set {_y1} to y pos of player
+	wait 2 ticks
+	set {_y2} to y pos of player
+	difference between {_y1} and {_y2} is more than 0.3
+	{_y1} < {_y2}
+	difference between {log.%player%} and now is more than 0.5 seconds
+	difference between {reload.%player%} and now is more than 5 seconds
+	if {fly} is true:
+		add 1 to {fly::%player%}
+		if {fly::%player%} >= 3:
+			alert(player, "Fly")
+			teleport player to {rubberband.%player%}
+			add 1 to {alerts::%player%}
+			add 1 to {flightlogs::%player%}
+			if {alerts::%player%} >= 10:
+				if {kick_10_alerts} is true:
+					Pigblockpi_kickPlayer(player)
+
+
+
+on any move:
+	player does not have permission "Pigblock.bypass.fly"
+	player's gamemode is survival or adventure
+	player's flight mode is false
+	set {_y1} to y pos of player
+	wait 2 ticks
+	set {_y2} to y pos of player
+	wait 2 ticks
+	set {_y3} to y pos of player
+	difference between {_y1} and {_y2} > difference between {_y1} and {_y3}
+	difference between {log.%player%} and now is more than 0.7 seconds
+	difference between {reload.%player%} and now is more than 5 seconds
+	player's flight mode is false
+	if {fly} is true:
+		add 1 to {fly::%player%}
+		if {fly::%player%} >= 3:
+			alert(player, "Glide")
+			teleport player to {rubberband.%player%}
+			add 1 to {alerts::%player%}
+			add 1 to {flightlogs::%player%}
+			if {alerts::%player%} >= 10:
+				if {kick_10_alerts} is true:
+					Pigblockpi_kickPlayer(player)
+
+on any move:
+	if {@eula} is true:
+		#player does not have permission "Pigblock.bypass.highjump":
+		player is not flying
+		player is not riding
+		set {_pos} to player's location
+		set {_loc} to player's y coordinate
+		wait 1 ticks
+		set {_loc1} to player's y coordinate
+		wait 1 ticks
+		set {_loc2} to player's y coordinate
+		wait 2 ticks
+		set {_loc3} to player's y coordinate
+		wait 2 ticks
+		set {_loc4} to player's y coordinate
+		difference between {_loc} and {_loc1} > 0.2
+		difference between {_loc} and {_loc1} = difference between {_loc1} and {_loc2}
+		#difference between {_loc1} and {_loc2} = difference between {_loc2} and {_loc3}
+		#difference between {_loc2} and {_loc3} = difference between {_loc3} and {_loc4}
+		block below player is not a stair
+		block south below player is not a stair
+		block east below player is not a stair
+		block west below player is not a stair
+		block north below player is not a stair
+		block below player is not a slab
+		block south below player is not a slab
+		block east below player is not a slab
+		block west below player is not a slab
+		block north below player is not a slab
+		if {fly} is true:
+			teleport player to {_pos}
+			add 1 to {spiderlogs::%player%}
+			add 1 to {alerts::%player%}
+			alert(player, "Fly")
+
+
+on unload:
+	loop all players:
+		set {reload.%loop-player%} to now
+	
+every 5 ticks:
+	loop all players:
+		set {_loc} to location of loop-player
+		loop all blocks in radius 2.5 around {_loc}:
+			if loop-block is not air:
+				set {log.%loop-player%} to now
+				set {rubberband.%loop-player%} to location of loop-player
+				
+		the gliding state of loop-player is true:
+			loop-player's chestplate is elytra:
+				set {log.%loop-player%} to now
+				
+		loop-player is flying:
+			set {lastflying::%loop-player%} to now
+	
+	
+	
+	
+
+on any move:
+	player does not have permission "Pigblock.bypass.speed":
+		if {@eula} is true:
+			player doesn't have speed
+			set {_loc::%player%} to the x location of player
+			set {speedsetback::%player%} to location of the player
+			wait 5 ticks
+			set {_loc1::%player%} to the x location of player
+			wait 1 tick
+			set {_diffyx::%player%} to difference between {_loc::%player%} and {_loc1::%player%}
+			if difference between {_loc::%player%} and {_loc1::%player%} >= 3.7:
+				player's gamemode is not creative
+				player is not flying
+				if {speed} is true:
+					add 1 to {speed::%player%}
+					if {speed::%player%} >= 3:
+						teleport player to {speedsetback::%player%}
+						alert(player, "Speed")
+						add 1 to {speedalerts::%player%}
+						add 1 to {alerts::%player%}
+						if {alerts::%player%} >= 10:
+							if {kick_10_alerts} is true:
+								Pigblockpi_kickPlayer(player)
+
+on any move:
+	player does not have permission "Pigblock.bypass.speed":
+		if {@eula} is true:
+			player doesn't have speed
+			set {_locz::%player%} to the z location of player
+			set {speedsetback::%player%} to location of the player
+			wait 5 ticks
+			set {_loc1z::%player%} to the z location of player
+			wait 1 tick
+			set {_diffy::%player%} to difference between {_locz::%player%} and {_loc1z::%player%}
+			if difference between {_locz::%player%} and {_loc1z::%player%} >= 3.7:
+				player's gamemode is not creative
+				player is not flying
+				if {speed} is true:
+					add 1 to {speed::%player%}
+					if {speed::%player%} >= 3:
+						teleport player to {speedsetback::%player%}
+						alert(player, "Speed")
+						add 1 to {speedalerts::%player%}
+						add 1 to {alerts::%player%}
+						if {alerts::%player%} >= 10:
+							if {kick_10_alerts} is true:
+								Pigblockpi_kickPlayer(player)
+
+on damage:
+	attacker does not have permission "Pigblock.bypass.reach":
+		if {@eula} is true:
+			attacker is a player
+			set {_reach} to distance between attacker and victim
+			if {_reach} > 4.5:
+				if damage cause is not a projectile:
+					attacker's gamemode is not creative:
+						if {reach} is true:
+							cancel event
+							alert(attacker, "Reach")
+							add 1 to {reachalerts::%attacker%}
+							add 1 to {alerts::%attacker%}
+							if {alerts::%attacker%} >= 10:
+								if {kick_10_alerts} is true:
+									Pigblockpi_kickPlayer(attacker)
+
+
+on damage:
+	attacker does not have permission "Pigblock.bypass.selfhurt":
+		if {@eula} is true:
+			if attacker is victim:
+				if damage cause is not a projectile:
+					if {selfhurt} is true:
+						cancel event
+						set {_ping} to attacker's ping
+						alert(attacker, "SelfHurt")
+
+
+on damage of a player:
+	victim is not flying
+	damage wasn't caused by fall, potion, lava, burning, fire, poison or wither
+	victim is not burning
+	victim doesn't have poison
+	victim doesn't have wither:
+		set {antikb::%victim%} to location of victim
+		wait 10 ticks
+		set {antikb2::%victim%} to location of victim
+		block at victim is not cobweb:
+			block at victim is not water:
+				victim is not riding:
+					if {antikb::%victim%} = {antikb2::%victim%}:
+						attacker does not have permission "Pigblock.bypass.antiknockback":
+							if {@eula} is true:
+								if {antiknockback} is true:
+									alert(victim, "AntiKnockback")
+									add 1 to {alerts::%victim%}
+									add 1 to {antikbalerts::%victim%}
+									if {alerts::%victim%} >= 10:
+										if {kick_10_alerts} is true:
+											Pigblockpi_kickPlayer(victim)
+
+on chat:
+	wait 1 tick
+	set {chatcooldown::%player%} to true
+	wait {@chat_cooldown_seconds} seconds
+	delete {chatcooldown::%player%}
+
+on chat:
+	if {@eula} is true:
+		if {chatcooldown::%player%} is true:
+			if {chatcooldown} is true:
+				player does not have permission "Pigblock.bypass.chatcooldown":
+					send "&cThere is a {@chat_cooldown_seconds}&c second chat cooldown!"
+					cancel event
+
+on shoot:
+	if projectile is an arrow:
+		if difference between {bow::%shooter%} and now is less than 2 ticks:
+			cancel event
+			shooter does not have permission "Pigblock.bypass.fastbow":
+				if {@eula} is true:
+					if {fastbow} is true:
+						alert(shooter, "FastBow")
+						add 1 to {alerts::%shooter%}
+						add 1 to {fastbowalerts::%shooter%}
+						if {alerts::%shooter%} >= 10:
+							if {kick_10_alerts} is true:
+								Pigblockpi_kickPlayer(shooter)
+		set {bow::%shooter%} to now
+							
+							
+on walk on water:
+	player is on ground
+	player's gamemode is not creative
+	player is not riding
+	player is not sneaking
+	block below player is water
+	block south below player is water
+	block east below player is water
+	block west below player is water
+	block north below player is water
+	block south player is air
+	block north player is air
+	block west player is air
+	block east player is air
+	player does not have permission "Pigblock.bypass.waterwalk"
+	if {@eula} is true:
+		if {waterwalk} is true:
+			cancel event
+			add 1 to {alerts::%player%}
+			add 1 to {waterwalk::%player%}
+			alert(player, "Waterwalk")
+
+on jump:
+	if {@eula} is true:
+		player does not have permission "Pigblock.bypass.highjump":
+			player's gamemode is not creative
+			player is not flying
+			player is not riding
+			set {_loc} to player's y coordinate
+			set {_pos} to player's location
+			wait 7 ticks
+			set {_loc1} to player's y coordinate
+			difference between {_loc} and {_loc1} >= 1.8:
+				block below player is not a stair
+				block south below player is not a stair
+				block east below player is not a stair
+				block west below player is not a stair
+				block north below player is not a stair
+				block below player is not a slab
+				block south below player is not a slab
+				block east below player is not a slab
+				block west below player is not a slab
+				block north below player is not a slab
+				teleport player to {_pos}
+				add 1 to {highjumplogs::%player%}
+				add 1 to {alerts::%player%}
+				alert(player, "High Jump")
+
+
+
+command /addbannedword [<text>]:
+	permission: Pigblock.words.addbanned
+	permission message: {@NoPermission}
+	trigger:
+		if {bannedwords::*} contains {bannedword::%arg 1%}:
+			send "&c&lPigblock &8>> &cThat word is already added to the banned word list! Check all of the banned words with /bannedwords"
+		else:
+			set {bannedword::%arg 1%} to arg 1
+			add {bannedword::%arg 1%} to {bannedwords::*}
+			send "&cAdded the word &d%arg 1%&c to the banned word list"
+
+command /clearbannedwords:
+	permission: Pigblock.words.clearbanned
+	permission message: {@NoPermission}
+	trigger:
+		delete {bannedword::*}
+		delete {bannedwords::*}
+		send "&cCleared all banned words!"
+
+command /bannedwords:
+	permission: Pigblock.words.listbanned
+	permission message: {@NoPermission}
+	trigger:
+		set {e} to 1
+		loop 1000 times:
+			if {bannedwords::%{e}%} is set:
+				send "%{bannedwords::%{e}%}%"
+				add 1 to {e}
+
+on chat:
+	loop {bannedwords::*}:
+		if message contains loop-value:
+			if player does not have permission "Pigblock.bypass.bannedwords":
+				send "&c&lPigblock &8>> &c%player% has tried to type a &cBanned Word&f. The word they typed was &c%loop-value%" to all players where [player input has permission "Pigblock.logs"]
+				send "&c&lPigblock &8>> &cOriginal Message: &f%message%"
+				replace all "%loop-value%" with "" in message
+
+
+function alert(p: player, cheat: text):
+	set {_ping} to {_p}'s ping
+	send "&c&lPigblock &8>> &c%{_p}% has failed &c%{_cheat}%. (&c%{_ping}%&c MS&f)" to all players where [player input has permission "Pigblock.logs"]
+	send "&c&lPigblock &8>> &c%{_p}% has failed &c%{_cheat}%. (&c%{_ping}%&c MS&f)" to console
+
+
+command /alert [<player>] [<text>]:
+	permission: Pigblock.alert
+	permission message: {@NoPermission}
+	trigger:
+		if arg 1 is set:
+			if arg 2 is set:
+				alert(arg 1, "%arg 2%")
+			else:
+				send "/alert <player> <reason>"
+		else:
+			send "/alert <player> <reason>"
+
+#-----------------------------------------------------------------------------------------------------------------------
+
+#API Docs:
+
+#Making a Pigblock Addon (Guide)
+#PigblockPI allows for custom Pigblock addons coded in skript using simple functions
+#BE SURE THE ADDON NAME IN THE SERVER FILES IS WRITTEN WITH LOWERCASE OR IT WILL NOT BE AUTOLOADED OR HOOKED INTO Pigblock.
+
+
+
+
+    #The most basic thing of a Pigblock addon is registering it, we have made it as simple as possible.
+    #When a On Load is called be sure to use the "Pigblockpi_registerAddon" function.
+    #The first argument (ADDON NAME) Indicates your addon's name (Allowed to be uppercase).
+    #The second argument (EXTRA TEXT) Indicates anything following your addons name, like a version number or your name.
+    #The third argument (script) is to tell PigblockPI what the scripts name is in your server files. DO NOT CHANGE.
+
+#on load:
+    #Pigblockpi_registerAddon("ADDON NAME", "EXTRA TEXT", script)
+
+
+
+
+#Other things you may need
+
+
+#Returns the players violations, this can be used as a variable like "if Pigblockpi_getVL(player) is more than 5:"
+#Change ARGUMENT to the player name, player doesnt need to be online.
+#Will return 0 if the player hasnt had any VL's or if the player doesnt exist.
+#Pigblockpi_getVL(ARGUMENT)
+
+
+#Adds ARGUMENT2 violations to ARGUMENT1.
+#Change ARGUMENT1 to the player name, player doesnt need to be online.
+#Change ARGUMENT2 to the to the amount of violations to add.
+#Pigblockpi_addVL(ARGUMENT1, ARGUMENT2)
+
+
+#Sets ARGUMENT1's violations to ARGUMENT2.
+#Change ARGUMENT1 to the player name, player doesnt need to be online.
+#Change ARGUMENT2 to the to the amount of violations to set to.
+#Pigblockpi_setVL(ARGUMENT1, ARGUMENT2)
+
+
+#Makes a violation and announces it to all staff.
+#Change ARGUMENT1 to the player name.
+#Change ARGUMENT2 to the chat they were flagged for.
+#Pigblockpi_alert(ARGUMENT1, "ARGUMENT2")
+
+
+#That is the Pigblock API documentation. Happy Coding!
+
+#-----------------------------------------------------------------------------------------------------------------------
+
+on load:
+	set {kick_10_alerts} to {@kick_10_alerts}
+	set {Pigblock::action::alert} to true
+	set {Pigblock::action::alertFunc} to false
+	loop {Pigblockpi::addons::*}:
+		delete {Pigblockpi::addons::%loop-index%}
+		execute console command "sk reload %loop-index%"
+
+function Pigblockpi_registerAddon(p: text, v: text, n: text):
+	set {Pigblockpi::addons::%{_n}%} to "%{_p}% - %{_v}%"
+	send "&cLoaded Pigblock Addon %{_p}% - %{_v}%" to console
+
+function Pigblockpi_getVL(p: offlineplayer) :: number:
+	{alerts::%{_p}%} is not set:
+		set {alerts::%{_p}%} to 0
+	return {alerts::%{_p}%}
+
+function Pigblockpi_reportPlayer(p: offline player, r: text):
+	add 1 to {reports::%{_p}%}
+	set {report::%{_p}%::%{reports::%{_p}%}%} to {_r}
+	add {report::%{_p}%::%{reports::%{_p}%}%} to {reports::%{_p}%::*}
+
+function Pigblockpi_clearReportsPlayer(p: offline player):
+	delete {reports::%{_p}%}
+	delete {report::%{_p}%::*}
+	delete {reports::%{_p}%::*}
+
+function Pigblockpi_addVL(p: offlineplayer, vl: number):
+	add {_vl} to {alerts::%{_p}%}
+
+function Pigblockpi_setVL(p: offlineplayer, vl: number):
+	set {alerts::%{_p}%} to {_vl}
+	
+function Pigblockpi_alert(p: offlineplayer, h: text):
+	alert({_p}, {_h})
+
+function Pigblockpi_setKick(b: boolean):
+	set {kick_10_alerts} to {_b}
+
+function Pigblockpi_setAlertBool(b: boolean):
+	set {Pigblock::action::alert} to {_b}
+
+function Pigblockpi_setAlertCallFunc(f: boolean):
+	set {Pigblock::action::alertFunc} to {_f}
+
+function Pigblockpi_kickPlayer(p: player):
+	kick {_p} due to "{@KickMessage}"
+
+on load:
+	set {autoclicker} to true
+	set {killaura} to true
+	set {fly} to true
+	set {speed} to true
+	set {reach} to true
+	set {antiknockback} to true
+	set {chatcooldown} to true
+	set {fastbow} to true
+	set {waterwalk} to true
+	set {highjump} to true
+	
+function xrayalert(p: player, t: text):
+	loop all players:
+		if {%{_t}%::%{_p}%} is true:
+			send "&c&lPigblock &8>> &c%{_p}% has mined &c%{_t}%" to loop-player
+
+function gui(p: player):
+	close {_p}'s inventory
+	wait 1 tick
+	open virtual chest inventory with size 2 named "&cPigblock Anticheat Checks" to {_p}
+	if {autoclicker} is true:
+		format gui slot 0 of {_p} with redstone torch named "&cDisable Auto Clicker Check" to run:
+			set {autoclicker} to false
+			wait 5 ticks
+			gui({_p})
+	if {autoclicker} is false:
+		format gui slot 0 of {_p} with redstone torch named "&cEnable Auto Clicker Check" to run:
+			set {autoclicker} to true
+			wait 5 ticks
+			gui({_p})
+	if {killaura} is true:
+		format gui slot 1 of {_p} with diamond sword named "&cDisable Killaura Check" to run:
+			set {killaura} to false
+			wait 5 ticks
+			gui({_p})
+	if {killaura} is false:
+		format gui slot 1 of {_p} with diamond sword named "&cEnable Killaura Check" to run:
+			set {killaura} to true
+			wait 5 ticks
+			gui({_p})
+	if {fly} is true:
+		format gui slot 2 of {_p} with feather named "&cDisable Flight Check" to run:
+			set {fly} to false
+			wait 5 ticks
+			gui({_p})
+	if {fly} is false:
+		format gui slot 2 of {_p} with feather named "&cEnable Flight Check" to run:
+			set {fly} to true
+			wait 5 ticks
+			gui({_p})
+	if {speed} is true:
+		format gui slot 3 of {_p} with diamond boots named "&cDisable Speed Check" to run:
+			set {speed} to false
+			wait 5 ticks
+			gui({_p})
+	if {speed} is false:
+		format gui slot 3 of {_p} with diamond boots named "&cEnable Speed Check" to run:
+			set {speed} to true
+			wait 5 ticks
+			gui({_p})
+	if {reach} is true:
+		format gui slot 4 of {_p} with iron sword named "&cDisable Reach Check" to run:
+			set {reach} to false
+			wait 5 ticks
+			gui({_p})
+	if {reach} is false:
+		format gui slot 4 of {_p} with iron sword named "&cEnable Reach Check" to run:
+			set {reach} to true
+			wait 5 ticks
+			gui({_p})
+	if {antiknockback} is true:
+		format gui slot 5 of {_p} with diamond chestplate named "&cDisable AntiKnockback Check" to run:
+			set {antiknockback} to false
+			wait 5 ticks
+			gui({_p})
+	if {antiknockback} is false:
+		format gui slot 5 of {_p} with diamond chestplate named "&cEnable AntKnockback Check" to run:
+			set {antiknockback} to true
+			wait 5 ticks
+			gui({_p})
+	if {chatcooldown} is true:
+		format gui slot 6 of {_p} with paper named "&cDisable Chat Cooldown ({@chat_cooldown_seconds} Seconds)" to run:
+			set {chatcooldown} to false
+			wait 5 ticks
+			gui({_p})
+	if {chatcooldown} is false:
+		format gui slot 6 of {_p} with paper named "&cEnable Chatcooldown ({@chat_cooldown_seconds} Seconds)" to run:
+			set {chatcooldown} to true
+			wait 5 ticks
+			gui({_p})
+	if {fastbow} is true:
+		format gui slot 7 of {_p} with bow named "&cDisable FastBow Check" to run:
+			set {fastbow} to false
+			wait 5 ticks
+			gui({_p})
+	if {fastbow} is false:
+		format gui slot 7 of {_p} with bow named "&cEnable FastBow Check" to run:
+			set {FastBow} to true
+			wait 5 ticks
+			gui({_p})
+	if {waterwalk} is true:
+		format gui slot 8 of {_p} with water bucket named "&cDisable Waterwalk Check" to run:
+			set {waterwalk} to false
+			wait 5 ticks
+			gui({_p})
+	if {waterwalk} is false:
+		format gui slot 8 of {_p} with water bucket named "&cEnable Waterwalk Check" to run:
+			set {waterwalk} to true
+			wait 5 ticks
+			gui({_p})
+	if {highjump} is true:
+		format gui slot 9 of {_p} with slime block named "&cDisable High Jump Check" to run:
+			set {highjump} to false
+			wait 5 ticks
+			gui({_p})
+	if {highjump} is false:
+		format gui slot 9 of {_p} with slime block named "&cEnable High Jump Check" to run:
+			set {highjump} to true
+			wait 5 ticks
+			gui({_p})
+	format gui slot 10 of {_p} with redstone dust named "&cEnable All Checks" to run:
+		set {autoclicker} to true
+		set {killaura} to true
+		set {fly} to true
+		set {speed} to true
+		set {reach} to true
+		set {antiknockback} to true
+		set {chatcooldown} to true
+		set {fastbow} to true
+		set {waterwalk} to true
+		set {highjump} to true
+		wait 5 ticks
+		gui({_p})
+	format gui slot 11 of {_p} with glowstone dust named "&cDisable All Checks" to run:
+		set {autoclicker} to false
+		set {killaura} to false
+		set {fly} to false
+		set {speed} to false
+		set {reach} to false
+		set {antiknockback} to false
+		set {chatcooldown} to false
+		set {fastbow} to false
+		set {waterwalk} to false
+		set {highjump} to false
+		gui({_p})
+
+function xray(p: player):
+	close {_p}'s inventory
+	open virtual chest inventory with size 1 named "&cXRay Ores" to {_p}
+	if {Coal::%{_p}%} is true:
+		format gui slot 0 of {_p} with coal named "&8Disable Coal Alerts" to run:
+			set {Coal::%{_p}%} to false
+			wait 1 tick
+			xray({_p})
+	if {Coal::%{_p}%} is false:
+		format gui slot 0 of {_p} with coal named "&8Enable Coal Alerts" to run:
+			set {Coal::%{_p}%} to true
+			wait 1 tick
+			xray({_p})
+	if {Iron::%{_p}%} is true:
+		format gui slot 1 of {_p} with iron ingot named "&fDisable Iron Alerts" to run:
+			set {Iron::%{_p}%} to false
+			wait 1 tick
+			xray({_p})
+	if {Iron::%{_p}%} is false:
+		format gui slot 1 of {_p} with iron ingot named "&8Enable Iron Alerts" to run:
+			set {Iron::%{_p}%} to true
+			wait 1 tick
+			xray({_p})
+	if {Gold::%{_p}%} is true:
+		format gui slot 2 of {_p} with gold ingot named "&6Disable Gold Alerts" to run:
+			set {Gold::%{_p}%} to false
+			wait 1 tick
+			xray({_p})
+	if {Gold::%{_p}%} is false:
+		format gui slot 2 of {_p} with gold ingot named "&6Enable Gold Alerts" to run:
+			set {Gold::%{_p}%} to true
+			wait 1 tick
+			xray({_p})
+	if {Quartz::%{_p}%} is true:
+		format gui slot 3 of {_p} with quartz named "&fDisable Quartz Alerts" to run:
+			set {Quartz::%{_p}%} to false
+			wait 1 tick
+			xray({_p})
+	if {Quartz::%{_p}%} is false:
+		format gui slot 3 of {_p} with quartz named "&fEnable Quartz Alerts" to run:
+			set {Quartz::%{_p}%} to true
+			wait 1 tick
+			xray({_p})
+	if {Lapis::%{_p}%} is true:
+		format gui slot 4 of {_p} with lapis lazuli named "&9Disable Lapis Alerts" to run:
+			set {Luartz::%{_p}%} to false
+			wait 1 tick
+			xray({_p})
+	if {Lapis::%{_p}%} is false:
+		format gui slot 4 of {_p} with lapis lazuli named "&9Enable Lapis Alerts" to run:
+			set {Lapis::%{_p}%} to true
+			wait 1 tick
+			xray({_p})
+	if {Redstone::%{_p}%} is true:
+		format gui slot 5 of {_p} with redstone named "&cDisable Redstone Alerts" to run:
+			set {Redstone::%{_p}%} to false
+			wait 1 tick
+			xray({_p})
+	if {Redstone::%{_p}%} is false:
+		format gui slot 5 of {_p} with redstone named "&cEnable Redstone Alerts" to run:
+			set {Redstone::%{_p}%} to true
+			wait 1 tick
+			xray({_p})
+	if {Diamond::%{_p}%} is true:
+		format gui slot 6 of {_p} with diamond named "&bDisable Diamond Alerts" to run:
+			set {Diamond::%{_p}%} to false
+			wait 1 tick
+			xray({_p})
+	if {Diamond::%{_p}%} is false:
+		format gui slot 6 of {_p} with diamond named "&bEnable Diamond Alerts" to run:
+			set {Diamond::%{_p}%} to true
+			wait 1 tick
+			xray({_p})
+	if {Emerald::%{_p}%} is true:
+		format gui slot 7 of {_p} with emerald named "&aDisable Emerald Alerts" to run:
+			set {Emerald::%{_p}%} to false
+			wait 1 tick
+			xray({_p})
+	if {Emerald::%{_p}%} is false:
+		format gui slot 7 of {_p} with emerald named "&aEnable Emerald Alerts" to run:
+			set {Emerald::%{_p}%} to true
+			wait 1 tick
+			xray({_p})
+	if {Netherite::%{_p}%} is true:
+		format gui slot 8 of {_p} with ancient debris named "&fDisable Ancient Debris Alerts" to run:
+			set {Netherite::%{_p}%} to false
+			wait 1 tick
+			xray({_p})
+	if {Netherite::%{_p}%} is false:
+		format gui slot 8 of {_p} with ancient debris named "&fEnable Ancient Debris Alerts" to run:
+			set {Netherite::%{_p}%} to true
+			wait 1 tick
+			xray({_p})
+
+on mine of coal ore:
+	if player does not have permission "Pigblock.bypass.xray.coal":
+		xrayalert(player, "Coal")
+
+on mine of iron ore:
+	if player does not have permission "Pigblock.bypass.xray.iron":
+		xrayalert(player, "Iron")
+
+on mine of gold ore:
+	if player does not have permission "Pigblock.bypass.xray.gold":	
+		xrayalert(player, "Gold")
+
+on mine of quartz ore:
+	if player does not have permission "Pigblock.bypass.xray.quartz":	
+		xrayalert(player, "Quartz")
+
+on mine of lapis ore:
+	if player does not have permission "Pigblock.bypass.xray.lapis":	
+		xrayalert(player, "Lapis")
+
+on mine of redstone ore:
+	if player does not have permission "Pigblock.bypass.xray.redstone":	
+		xrayalert(player, "Redstone")
+
+on mine of diamond ore:
+	if player does not have permission "Pigblock.bypass.xray.diamond":	
+		xrayalert(player, "Diamond")
+
+on mine of emerald ore:
+	if player does not have permission "Pigblock.bypass.xray.emerald":	
+		xrayalert(player, "Emerald")
+
+on mine of ancient debris:
+	if player does not have permission "Pigblock.bypass.xray.netherite":	
+		xrayalert(player, "Netherite")
+
+on join:
+	player has permission "Pigblock.xray":
+		if {Coal::%player%} is not set:
+			set {Coal::%player%} to true
+		if {Iron::%player%} is not set:
+			set {Iron::%player%} to true
+		if {Gold::%player%} is not set:
+			set {Gold::%player%} to true
+		if {Lapis::%player%} is not set:
+			set {Lapis::%player%} to true
+		if {Redstone::%player%} is not set:
+			set {Redstone::%player%} to true
+		if {Quartz::%player%} is not set:
+			set {Quartz::%player%} to true
+		if {Emerald::%player%} is not set:
+			set {Emerald::%player%} to true
+		if {Diamond::%player%} is not set:
+			set {Diamond::%player%} to true
+		if {Netherite::%player%} is not set:
+			set {Netherite::%player%} to true
